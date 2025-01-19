@@ -1,0 +1,21 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nodejs-websocket-app
+    ports:
+      - "8888:8888"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development} # Default to development
+    command: >
+      sh -c "
+      if [ '${NODE_ENV}' = 'production' ]; then
+        npm start;
+      else
+        npm run dev;
+      fi
+      "
+    volumes:
+      - .:/usr/src/app:delegated
+      - /usr/src/app/node_modules

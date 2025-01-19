@@ -1,0 +1,25 @@
+{
+  "name": "web-application-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node -r dotenv/config server.js dotenv_config_path=.env.development",
+    "start": "node -r dotenv/config server.js dotenv_config_path=.env.production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "backblaze-b2": "^1.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "formidable": "^3.5.2",
+    "memory-cache": "^0.2.0",
+    "mime-types": "^2.1.35",
+    "path": "^0.12.7",
+    "socket.io": "^4.8.1"
+  }
+}
