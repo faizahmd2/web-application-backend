@@ -8,7 +8,7 @@ var controllers = {
 
         try {
             const processed_file = utils.getUploadStatus(fileName);
-            console.log("processed_file::",processed_file);
+            // console.log("processed_file::",processed_file);
             if(processed_file.totalParts > 1 && !processed_file.fileId) return res.json({status: 0, message: "Invalid Operation"});
             req.processed_file = processed_file;
             req.fileName = fileName;

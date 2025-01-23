@@ -30,7 +30,7 @@ class B2Handler {
 
       this.bucketId = bucket.bucketId;
       this.isAuthorized = true;
-      console.log('B2 initialized successfully with bucket:', this.bucketId);
+      console.log('B2 initialized successfully');
     } catch (error) {
       console.error('B2 initialization failed:', error.message);
       throw error;
@@ -74,14 +74,14 @@ class B2Handler {
     }
 
     const sha1 = this.calculateSha1(buffer);
-    console.log("sha1::",sha1.length);
+    // console.log("sha1::",sha1.length);
 
     try {
       const { data: { uploadUrl, authorizationToken } } = await this.b2.getUploadPartUrl({
         fileId: processed_file.fileId
       });
-      console.log("uploadUrl::",uploadUrl);
-      console.log("authorizationToken::",authorizationToken);
+      // console.log("uploadUrl::",uploadUrl);
+      // console.log("authorizationToken::",authorizationToken);
 
       partNumber = +partNumber;
       const response = await this.b2.uploadPart({
@@ -98,7 +98,7 @@ class B2Handler {
       }
 
       let uploadedInf = { ...processed_file, uploadedParts: partNumber };
-      console.log("Puttig",fileName,uploadedInf);
+      // console.log("Puttig",fileName,uploadedInf);
       cache.put(fileName, uploadedInf, 24 * 60 * 60 * 1000);
 
       console.log(`Successfully uploaded part ${partNumber} for file ${processed_file.fileId}`);
@@ -288,16 +288,16 @@ const utils = {
             return { status: 0, message: "No active upload found" };
           }
 
-          console.log("On END fileData::",fileData);
+          // console.log("On END fileData::",fileData);
           if(fileData.totalParts > 1) {
             const sha1Array = b2Handler.getPartSha1Array(fileData.fileId, fileData.totalParts);
-            console.log("sha1Array::",sha1Array);
+            // console.log("sha1Array::",sha1Array);
 
             const finishResponse = await b2Handler.b2.finishLargeFile({
               fileId: fileData.fileId,
               partSha1Array: sha1Array
             });
-            console.log("finishResponse::",finishResponse);
+            // console.log("finishResponse::",finishResponse);
           }
 
           // Clear all caches related to this file
