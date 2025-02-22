@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.7.9",
     "backblaze-b2": "^1.7.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -19,7 +20,9 @@
     "formidable": "^3.5.2",
     "memory-cache": "^0.2.0",
     "mime-types": "^2.1.35",
+    "mongodb": "^6.13.1",
     "path": "^0.12.7",
+    "shortid": "^2.2.17",
     "socket.io": "^4.8.1"
   }
 }

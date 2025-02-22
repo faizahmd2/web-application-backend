@@ -1,4 +1,4 @@
-const socketServer = require('./socket');
+const socketServer = require('../socket');
 
 var controllers = {
     socketEventTrigger: function(req, res) {

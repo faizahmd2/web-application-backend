@@ -7,6 +7,7 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+global.appRoot = path.resolve(__dirname);
 
 const app = express();
 const server = http.createServer(app);
@@ -16,8 +17,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
+app.use(express.static('site'));
+
 // Initialize Socket.IO server
-const socketServer = require('./src/web-socket/socket');
+const socketServer = require('./src/socket');
 socketServer.initialize(server);
 
 // Load routes from all application folders
