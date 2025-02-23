@@ -8,7 +8,7 @@ var handler = {
             res.sendFile(appRoot + '/site/editor/index.html');
         } else {
             const editorId = shortid.generate();
-            res.redirect(`/text?id=${editorId}`);
+            res.redirect(`/collaborative-editor?id=${editorId}`);
         }
     },
     getEditorContent: async (req, res) => {
