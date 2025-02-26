@@ -65,6 +65,20 @@ var handler = {
             console.error('Save error:', error.message);
             res.json({ error: 'Failed to save content' });
         }
+    },
+    saveAllContent: async (req, res) => {
+        try {
+            let allEditorIds = inMemoryStorage.getAllActiveEditorIds();
+
+            for(let editor_id of allEditorIds) {
+                await handler.saveEditorContent({body: { id: editor_id }}, { json: () => {} });
+            }
+
+            res.json({});
+        } catch (error) {
+            console.error('Save error:', error.message);
+            res.status(500).json({ error: 'Failed to save content' });
+        }
     }
 }
 

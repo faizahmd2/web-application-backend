@@ -88,7 +88,7 @@ function emitToRoom(roomId, event, data) {
 
 async function saveContentToAPI(editorId) {
     try {
-        await axios.post(`${process.env.BASE_URL}/save-editor-content`, { id: editorId });
+        await axios.post(`${process.env.BASE_URL}/collaborative-editor/save-content`, { id: editorId });
         console.log(`Content saved for editor ${editorId}`);
     } catch (error) {
         console.error(`Failed to save content for editor ${editorId}:`, error);

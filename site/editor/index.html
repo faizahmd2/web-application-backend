@@ -138,7 +138,7 @@
             if (!contentLoaded) {
                 showLoading(true);
                 try {
-                    const response = await fetch(`/load-editor-content/${editorId}`);
+                    const response = await fetch(`/collaborative-editor/load-content/${editorId}`);
                     const data = await response.json();
 
                     if (!data.error && !contentLoaded) {
@@ -180,7 +180,7 @@
         saveBtn.addEventListener('click', async () => {
             try {
                 saveBtn.textContent = '⏳';
-                const response = await fetch('/save-editor-content', {
+                const response = await fetch('/collaborative-editor/save-content', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: editorId })
@@ -202,7 +202,7 @@
         destroyBtn.addEventListener('click', async () => {
             try {
                 destroyBtn.textContent = '⏳';
-                const response = await fetch('/destroy-editor-content/'+editorId, {
+                const response = await fetch('/collaborative-editor/destroy-content/'+editorId, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
                 });

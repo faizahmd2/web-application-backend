@@ -8,6 +8,10 @@ class EditorStorage {
         return this.content[editorId] || '';
     }
 
+    getAllActiveEditorIds() {
+        return Object.keys(this.connections);
+    }
+
     setContent(editorId, newContent) {
         this.content[editorId] = newContent;
     }
