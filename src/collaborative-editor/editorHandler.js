@@ -50,6 +50,21 @@ var handler = {
             console.error('Save error:', error.message);
             res.json({ error: 'Failed to save content' });
         }
+    },
+    destroyEditorContent: async (req, res) => {
+        try {
+            const { id } = req.params;
+            // const baseUrl = req.protocol + "://" + req.get("host");
+
+            inMemoryStorage.cleanup(id);
+
+            await cloudStorage.destroyEditorContent(id);
+
+            res.json({"redirect": "/editor/close.html"});
+        } catch (error) {
+            console.error('Save error:', error.message);
+            res.json({ error: 'Failed to save content' });
+        }
     }
 }
 

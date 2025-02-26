@@ -34,13 +34,13 @@
             align-items: center;
         }
 
-        .save-btn {
+        .save-btn, .destroy-btn {
             cursor: pointer;
             padding: 4px;
             transition: color 0.2s;
         }
 
-        .save-btn:hover {
+        .save-btn:hover, .destroy-btn:hover {
             color: #4a9eff;
         }
 
@@ -106,7 +106,10 @@
     <div class="container">
         <div class="header">
             <h1>Collaborative Editor</h1>
-            <div class="save-btn" title="Save Permanently">💾</div>
+            <div style="display: flex; justify-content: right; gap: 3px;">
+                <div class="destroy-btn" title="Destroy">🗑️</div>
+                <div class="save-btn" title="Save Permanently">💾</div>
+            </div>
         </div>
         <div class="editor-container">
             <div class="line-numbers">1</div>
@@ -119,6 +122,7 @@
         const editor = document.getElementById('editor');
         const lineNumbers = document.querySelector('.line-numbers');
         const saveBtn = document.querySelector('.save-btn');
+        const destroyBtn = document.querySelector('.destroy-btn');
         const loadingOverlay = document.getElementById('loading');
         const urlParams = new URLSearchParams(window.location.search);
         const editorId = urlParams.get('id');
@@ -191,6 +195,27 @@
             } catch (err) {
                 saveBtn.textContent = '❌';
                 setTimeout(() => saveBtn.textContent = '💾', 2000);
+                console.error('Error saving:', err);
+            }
+        });
+
+        destroyBtn.addEventListener('click', async () => {
+            try {
+                destroyBtn.textContent = '⏳';
+                const response = await fetch('/destroy-editor-content/'+editorId, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    throw new Error('Save failed');
+                }
+            } catch (err) {
+                destroyBtn.textContent = '❌';
+                setTimeout(() => destroyBtn.textContent = '🗑️', 2000);
                 console.error('Error saving:', err);
             }
         });

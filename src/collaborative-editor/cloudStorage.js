@@ -45,6 +45,22 @@ var cloudStorage = {
       console.error('Save error:', error.message);
       return { error: 'Failed to save content' };
     }
+  },
+  destroyEditorContent: async (id, content) => {
+    try {
+      if (!id) {
+        return { error: 'ID is required' };
+      }
+
+      // Save content to MongoDB
+      const collection = await dbService.getCollection('editor_content');
+      collection.deleteOne( { id: id } );
+
+      return {};
+    } catch (error) {
+      console.error('Save error:', error.message);
+      return { error: 'Failed to save content' };
+    }
   }
 };
 

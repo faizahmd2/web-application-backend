@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://i.ibb.co/KFY0fY0/favicon-32x32.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Destruct Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+        }
+        #timer {
+            font-size: 50px;
+            font-weight: bold;
+            color: red;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        let timeLeft = 10;
+        function updateTimer() {
+            document.getElementById("timer").textContent = timeLeft;
+            if (timeLeft <= 0) {
+                window.close(); // Attempt to close the tab
+                document.body.innerHTML = "<h1>Page Destroyed</h1>";
+            }
+            timeLeft--;
+        }
+        setInterval(updateTimer, 1000);
+    </script>
+</head>
+<body>
+    <h1>Page will self-destruct in:</h1>
+    <div id="timer">10</div>
+    <button onclick="window.location.href='/collaborative-editor'">Go to Editor</button>
+</body>
+</html>

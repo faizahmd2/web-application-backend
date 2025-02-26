@@ -6,4 +6,6 @@ module.exports = (app) => {
     app.get('/load-editor-content/:id', handler.getEditorContent);
 
     app.post('/save-editor-content', handler.saveEditorContent);
+
+    app.delete('/destroy-editor-content/:id', handler.destroyEditorContent);
 }
