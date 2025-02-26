@@ -27,7 +27,7 @@
         function updateTimer() {
             document.getElementById("timer").textContent = timeLeft;
             if (timeLeft <= 0) {
-                window.close(); // Attempt to close the tab
+                window.close();
                 document.body.innerHTML = "<h1>Page Destroyed</h1>";
             }
             timeLeft--;
