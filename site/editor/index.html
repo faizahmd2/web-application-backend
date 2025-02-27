@@ -52,6 +52,7 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             background: #f8f9fa;
+            position: relative;
         }
 
         .line-numbers {
@@ -95,6 +96,18 @@
             color: #333;
         }
 
+        .status-indicator {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            font-size: 12px;
+            color: #868e96;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: opacity 0.5s;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 12px 5px;
@@ -116,6 +129,7 @@
             <div class="line-numbers">1</div>
             <textarea id="editor" spellcheck="false"></textarea>
             <div style="display: none;" class="loading-overlay" id="loading">Loading...</div>
+            <div class="status-indicator" id="status-indicator" style="opacity: 0;">Syncing...</div>
         </div>
     </div>
 
@@ -125,9 +139,17 @@
         const saveBtn = document.querySelector('.save-btn');
         const destroyBtn = document.querySelector('.destroy-btn');
         const loadingOverlay = document.getElementById('loading');
+        const statusIndicator = document.getElementById('status-indicator');
         const urlParams = new URLSearchParams(window.location.search);
         const editorId = urlParams.get('id');
         let contentLoaded = false;
+        let isTyping = false;
+        let lastSyncedContent = '';
+        let pendingChanges = false;
+        let syncTimer = null;
+        let lastActivityTime = Date.now();
+        let currentCursorPosition = { start: 0, end: 0 };
+
         showLoading(true);
 
         function updateLineNumbers() {
@@ -135,7 +157,37 @@
             lineNumbers.innerHTML = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
         }
 
-        async function fetchInitialData () {
+        // Save cursor position before updates
+        function saveCursorPosition() {
+            currentCursorPosition = {
+                start: editor.selectionStart,
+                end: editor.selectionEnd
+            };
+        }
+
+        // Restore cursor position after updates
+        function restoreCursorPosition() {
+            editor.selectionStart = currentCursorPosition.start;
+            editor.selectionEnd = currentCursorPosition.end;
+        }
+
+        // Debounce function
+        function debounce(func, wait, immediate = false) {
+            let timeout;
+            return function() {
+                const context = this, args = arguments;
+                const later = function() {
+                    timeout = null;
+                    if (!immediate) func.apply(context, args);
+                };
+                const callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        }
+
+        async function fetchInitialData() {
             if (!contentLoaded) {
                 showLoading(true);
                 try {
@@ -151,9 +203,68 @@
                     console.error('Error loading content:', err);
                 }
             }
-        };
+        }
 
-        editor.addEventListener('input', updateLineNumbers);
+        // Function to sync content adaptively
+        function syncContent() {
+            if (!pendingChanges) return;
+
+            const currentContent = editor.value;
+            if (currentContent !== lastSyncedContent) {
+                saveCursorPosition();
+                socket.emit('content-change', currentContent);
+                lastSyncedContent = currentContent;
+                showSyncStatus(true);
+                setTimeout(() => showSyncStatus(false), 500);
+            }
+            pendingChanges = false;
+        }
+
+        // Adaptive sync interval based on typing activity
+        function startAdaptiveSync() {
+            // Clear any existing timer
+            if (syncTimer) clearInterval(syncTimer);
+
+            // Check if user is actively typing
+            const timeSinceLastActivity = Date.now() - lastActivityTime;
+
+            // Set sync interval based on activity
+            const syncInterval = timeSinceLastActivity < 2000 ? 1000 : 300;
+
+            // Start new timer
+            syncTimer = setInterval(syncContent, syncInterval);
+        }
+
+        // Show sync status indicator
+        function showSyncStatus(show) {
+            statusIndicator.style.opacity = show ? '1' : '0';
+        }
+
+        // Initialize and setup event listeners
+        editor.addEventListener('input', function() {
+            updateLineNumbers();
+            lastActivityTime = Date.now();
+            pendingChanges = true;
+            isTyping = true;
+
+            // Clear existing timer and start a new one
+            if (syncTimer) clearInterval(syncTimer);
+            syncTimer = setInterval(syncContent, 1000);
+        });
+
+        // Immediate sync when user stops typing
+        const quickSync = debounce(function() {
+            isTyping = false;
+            syncContent();
+            startAdaptiveSync();
+        }, 500);
+
+        editor.addEventListener('keyup', quickSync);
+        editor.addEventListener('blur', function() {
+            // Sync immediately when user leaves the editor
+            syncContent();
+        });
+
         editor.addEventListener('scroll', () => {
             lineNumbers.scrollTop = editor.scrollTop;
         });
@@ -163,23 +274,39 @@
 
         socket.on('content-update', (content) => {
             contentLoaded = true;
-            // clearTimeout(socketTimeout);
-            editor.value = content;
-            // console.log("UPDATE from socket",content);
+
+            // Only update if content actually changed
+            if (content !== editor.value) {
+                saveCursorPosition();
+                editor.value = content;
+                lastSyncedContent = content;
+                updateLineNumbers();
+                restoreCursorPosition();
+            }
+
             showLoading(false);
-            updateLineNumbers();
         });
 
         socket.on('fetch-initial-content', () => {
             fetchInitialData();
         });
 
-        editor.addEventListener('input', () => {
-            socket.emit('content-change', editor.value);
+        socket.on('connect', () => {
+            // Start adaptive sync when socket connects
+            startAdaptiveSync();
+        });
+
+        socket.on('disconnect', () => {
+            // Clear sync timer on disconnect
+            if (syncTimer) clearInterval(syncTimer);
+            showSyncStatus(false);
         });
 
         saveBtn.addEventListener('click', async () => {
             try {
+                // Sync any pending changes first
+                syncContent();
+
                 saveBtn.textContent = '⏳';
                 const response = await fetch('/collaborative-editor/save-content', {
                     method: 'POST',
@@ -222,7 +349,6 @@
         });
 
         function fetchedFromApi() {
-            // console.log("Trigger update from api");
             socket.emit('set-api-content', true);
         }
 
@@ -231,6 +357,8 @@
             editor.disabled = state;
         }
 
+        // Start adaptive sync on page load
+        startAdaptiveSync();
     </script>
 </body>
 </html>
