@@ -63,6 +63,25 @@ function initialize(server) {
             });
         });
 
+        socket.on('join-file-sharing', (fileShareId) => {
+            console.log(`Client ${socket.id} file share editor: ${fileShareId}`);
+            if (!fileShareId) return;
+
+            socket.join(fileShareId);
+
+            io.to(fileShareId).emit('fetch-share-files', true);
+
+            // Listen for content changes
+            socket.on('new-file-uploaded', () => {
+                io.to(fileShareId).emit('fetch-share-files', true);
+            });
+
+            // Handle disconnection
+            socket.on('disconnect', async () => {
+                console.log(`Client Disconnected ${socket.id} file share editor: ${fileShareId}`);
+            });
+        });
+
         socket.on('disconnect', () => {
             // console.log('Client disconnected:', socket.id);
         });
