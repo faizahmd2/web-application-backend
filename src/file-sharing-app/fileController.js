@@ -83,4 +83,25 @@ const download = async (req, res) => {
     res.send(file);
 }
 
-module.exports = { getFileSharingApp, handleFileUpload, listFiles, deleteFile, download };
+const cleanupExpiredFiles = async (req, res) => {
+    try {
+        const files = await fileStorage.getExpiredFiles();
+        const removedIds = [];
+
+        for(let file of files) {
+            console.log(`Removing expired file: ${file.fileKey}`);
+            await R2Service.deleteFile(process.env.R2_BUCKET, file.fileKey);
+            removedIds.push(file._id);
+        }
+
+        // Remove expired files from MongoDB
+        let collection = await fileStorage.getCollection();
+        console.log("Removed Files:",removedIds);
+        await collection.deleteMany({ _id: { $in: removedIds } });
+        res.json({removedIds});
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+module.exports = { getFileSharingApp, handleFileUpload, listFiles, deleteFile, download, cleanupExpiredFiles };

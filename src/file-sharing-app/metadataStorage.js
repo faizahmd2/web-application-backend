@@ -34,7 +34,27 @@ var storage = {
     deleteMetadata: async function(uniqueId, fileKey) {
         const collection = await dbService.getCollection(collectionName);
         await collection.deleteOne({ uniqueId, fileKey });
+    },
+    getCollection: async function() {
+        const collection = await dbService.getCollection(collectionName);
+        return collection;
+    },
+    getExpiredFiles: async function () {
+        const collection = await dbService.getCollection(collectionName);
+
+        // Find expired files
+        const expiredFiles = await collection.find(
+            {
+                expire: { $lt: new Date() }
+            },
+            {
+                projection: { fileKey: 1, _id: 1 }
+            }
+        ).toArray();
+
+        return expiredFiles;
     }
+
 }
 
 module.exports = storage;
