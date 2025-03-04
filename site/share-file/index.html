@@ -470,15 +470,17 @@
                         }
 
                         // Format expiry date
-                        const expiryFormatted = new Date(file.expire).toLocaleString("en-IN", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                            hour12: false
-                        });
+                        // const expiryFormatted = new Date(file.expire).toLocaleString("en-IN", {
+                        //     year: "numeric",
+                        //     month: "2-digit",
+                        //     day: "2-digit",
+                        //     hour: "2-digit",
+                        //     minute: "2-digit",
+                        //     second: "2-digit",
+                        //     hour12: false
+                        // });
+                        const expiryFormatted = new Date(file.expire).toISOString();
+                        let expiryText = getExpiryText(expiryFormatted);
 
                         // Get file icon based on extension
                         const extension = file.originalName.split('.').pop().toLowerCase();
@@ -507,7 +509,7 @@
                                     <div class="file-name">${file.originalName}</div>
                                     <div class="file-meta">
                                         <span>${sizeDisplay}</span>
-                                        <span>Expires: ${expiryFormatted}</span>
+                                        <span class="file-expiry-date" date-of-expiry="${expiryFormatted}">${expiryText}</span>
                                     </div>
                                 </div>
                                 <div class="file-actions">
@@ -540,6 +542,14 @@
             }
         }
 
+        let timeinterval = setInterval(() => {
+            document.querySelectorAll(".file-expiry-date").forEach(element => {
+                const expiryDate = element.getAttribute("date-of-expiry");
+                const expiryText = getExpiryText(expiryDate);
+                element.textContent = expiryText;
+            });
+        }, 5000);
+
         async function deleteFile(fileKey) {
             try {
                 loadingContainer.style.display = 'flex';
@@ -556,6 +566,34 @@
                 loadingContainer.style.display = 'none';
                 alert('Deletion failed. Please try again.');
             }
+        }
+
+        function getExpiryText(timestamp) {
+            console.log("timestamp:",timestamp);
+            const expiryDate = new Date(timestamp);
+            const now = new Date();
+            const diff = expiryDate - now;
+            console.log("diff::",diff);
+
+            let finalText = '';
+            if (diff <= 0) {
+                socket.emit('new-file-uploaded', "1");
+            } else {
+                const minutes = Math.floor((diff / 1000) / 60);
+                const hours = Math.floor(minutes / 60);
+                const days = Math.floor(hours / 24);
+                const seconds = Math.floor(diff / 1000);
+
+                if (days > 0) {
+                    finalText = `Expires in ${days}d ${hours % 24}h`;
+                } else if (hours > 0) {
+                    finalText = `Expires in ${hours}h ${minutes % 60}m`;
+                } else {
+                    finalText = `Expires in ${minutes}m ${seconds}s`;
+                }
+            }
+
+            return finalText;
         }
 
         // Initial load
